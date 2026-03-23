@@ -43,8 +43,18 @@ export default function App() {
           roadmap: data.roadmap
         }
       ]);
-    } catch (e) {
-      console.error(e);
+    } catch (error: any) {
+      console.error(error);
+      const errorStr = JSON.stringify(error);
+      if (errorStr.includes('429') || errorStr.toLowerCase().includes('quota') || errorStr.toLowerCase().includes('resource_exhausted')) {
+        setMessages([
+          {
+            id: Date.now().toString(),
+            role: 'model',
+            content: "I've hit a temporary limit on my thinking capacity. Please wait a minute and try again!"
+          }
+        ]);
+      }
       setPhase('intro');
     } finally {
       setIsLoading(false);
@@ -79,12 +89,20 @@ export default function App() {
       };
 
       setMessages(prev => [...prev, newAiMsg]);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      let errorMsg = "I'm sorry, I encountered an error processing that. Could you try again?";
+      
+      // Check for rate limit or quota errors
+      const errorStr = JSON.stringify(error);
+      if (errorStr.includes('429') || errorStr.toLowerCase().includes('quota') || errorStr.toLowerCase().includes('resource_exhausted')) {
+        errorMsg = "I've hit a temporary limit on my thinking capacity. Please wait a minute and try again!";
+      }
+
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         role: 'model',
-        content: "I'm sorry, I encountered an error processing that. Could you try again?"
+        content: errorMsg
       }]);
     } finally {
       setIsLoading(false);

@@ -79,7 +79,7 @@ export async function getNextUpskillrResponse(history: { role: string, parts: { 
   const contents = [...history, { role: 'user', parts: [{ text: userMessage }] }];
   
   const response = await ai.models.generateContent({
-    model: 'gemini-3.1-pro-preview',
+    model: 'gemini-3-flash-preview',
     contents,
     config: {
       systemInstruction,

@@ -1,5 +1,5 @@
 {
-  "name": "Upskillr",
-  "description": "A conversational AI app that helps users discover the most suitable digital skill(s) for them and generates a personalized learning roadmap with FREE resources.",
+  "name": "Upskillr - AI Career & Skill Discovery",
+  "description": "Discover your perfect digital career path. Upskillr uses AI to analyze your personality and strengths, matching you with the best digital skills and a personalized 30-day learning roadmap.",
   "requestFramePermissions": []
 }
