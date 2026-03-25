@@ -1,3 +1,11 @@
+export interface AISurvivalGuide {
+  skill: string;
+  automationThreat: string[];
+  humanAdvantage: string[];
+  multiplierStrategy: string;
+  toolStack: { name: string; description: string }[];
+}
+
 export interface RoadmapData {
   bestSkills: string[];
   whyItFits: string;

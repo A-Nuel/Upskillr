@@ -1,15 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Loader2, Sparkles, Compass, Target, Map } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { getNextUpskillrResponse } from './services/gemini';
-import { ChatMessage, UpskillrResponse } from './types';
+import { getNextUpskillrResponse, generateAISurvivalGuide } from './services/gemini';
+import { ChatMessage, UpskillrResponse, AISurvivalGuide } from './types';
 import { Roadmap } from './components/Roadmap';
+import { AISurvivalGuideView } from './components/AISurvivalGuideView';
 
 export default function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [phase, setPhase] = useState<'intro' | 'discovery' | 'analysis' | 'confirmation' | 'roadmap'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'discovery' | 'analysis' | 'confirmation' | 'roadmap' | 'survival-guide'>('intro');
+  const [survivalGuideData, setSurvivalGuideData] = useState<AISurvivalGuide | null>(null);
+  const [isGeneratingGuide, setIsGeneratingGuide] = useState(false);
   const [feedback, setFeedback] = useState<'yes' | 'no' | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -106,6 +109,30 @@ export default function App() {
       }]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGenerateGuide = async (skill: string) => {
+    setIsGeneratingGuide(true);
+    try {
+      const responseText = await generateAISurvivalGuide(skill);
+      let cleanText = responseText || '{}';
+      if (cleanText.includes('```json')) {
+        cleanText = cleanText.replace(/```json\n?/, '').replace(/```\n?$/, '');
+      }
+      const data = JSON.parse(cleanText) as AISurvivalGuide;
+      setSurvivalGuideData(data);
+      setPhase('survival-guide');
+    } catch (error: any) {
+      console.error("Failed to generate AI Survival Guide", error);
+      const errorStr = JSON.stringify(error, Object.getOwnPropertyNames(error));
+      if (errorStr.includes('429') || errorStr.toLowerCase().includes('quota') || errorStr.toLowerCase().includes('resource_exhausted')) {
+        alert("I've hit a temporary limit on my thinking capacity. Please wait a minute and try again!");
+      } else {
+        alert(`Failed to generate the guide: ${error?.message || 'Unknown error'}. Please try again.`);
+      }
+    } finally {
+      setIsGeneratingGuide(false);
     }
   };
 
@@ -258,8 +285,26 @@ export default function App() {
 
                     {isAi && msg.roadmap && (
                       <div className="w-full mt-4">
-                        <Roadmap data={msg.roadmap} />
-                        {isLast && phase === 'roadmap' && (
+                        {phase === 'survival-guide' && survivalGuideData ? (
+                          <AISurvivalGuideView 
+                            data={survivalGuideData} 
+                            onBack={() => setPhase('roadmap')} 
+                          />
+                        ) : (
+                          <Roadmap 
+                            data={msg.roadmap} 
+                            onGenerateGuide={handleGenerateGuide} 
+                          />
+                        )}
+                        
+                        {isGeneratingGuide && (
+                          <div className="mt-8 p-8 rounded-2xl bg-indigo-950/50 border border-indigo-500/30 flex flex-col items-center justify-center space-y-4">
+                            <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+                            <p className="text-indigo-200 font-medium animate-pulse">Generating your classified AI Survival Guide...</p>
+                          </div>
+                        )}
+
+                        {isLast && phase === 'roadmap' && !isGeneratingGuide && (
                           <div className="mt-6 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-sm flex flex-col items-center gap-4 max-w-md mx-auto">
                             {!feedback ? (
                               <>
@@ -316,7 +361,7 @@ export default function App() {
       </main>
 
       {/* Input Area */}
-      {phase !== 'roadmap' && (
+      {phase !== 'roadmap' && phase !== 'survival-guide' && (
         <div className="bg-slate-950 border-t border-slate-800 p-4 fixed bottom-0 left-0 right-0">
           <div className="max-w-4xl mx-auto relative">
             <input

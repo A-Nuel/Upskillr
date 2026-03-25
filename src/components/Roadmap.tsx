@@ -1,7 +1,12 @@
-import { Target, Brain, Calendar, Wrench, BookOpen, DollarSign, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Target, Brain, Calendar, Wrench, BookOpen, DollarSign, AlertTriangle, TrendingUp, Sparkles } from 'lucide-react';
 import { RoadmapData } from '../types';
 
-export function Roadmap({ data }: { data: RoadmapData }) {
+interface RoadmapProps {
+  data: RoadmapData;
+  onGenerateGuide?: (skill: string) => void;
+}
+
+export function Roadmap({ data, onGenerateGuide }: RoadmapProps) {
   return (
     <div className="w-full max-w-4xl mx-auto p-6 space-y-8 bg-slate-900 rounded-2xl shadow-sm border border-slate-800 mt-4 mb-8">
       <div className="text-center space-y-4">
@@ -135,6 +140,26 @@ export function Roadmap({ data }: { data: RoadmapData }) {
           <p className="text-sm text-blue-300/80">{data.longTermGrowth}</p>
         </div>
       </div>
+
+      {/* AI Survival Guide CTA */}
+      {onGenerateGuide && (
+        <div className="mt-12 p-8 rounded-2xl bg-gradient-to-r from-slate-900 to-indigo-950 border border-indigo-500/30 text-center relative overflow-hidden group">
+          <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="relative z-10 flex flex-col items-center space-y-4">
+            <h3 className="text-2xl font-bold text-white">Wait. Will AI replace this job?</h3>
+            <p className="text-indigo-200/80 max-w-lg mx-auto">
+              Discover how to future-proof your new career, avoid being replaced, and learn to build WITH AI.
+            </p>
+            <button
+              onClick={() => onGenerateGuide(data.bestSkills?.[0] || 'this skill')}
+              className="mt-4 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center gap-2"
+            >
+              <Sparkles className="w-5 h-5" />
+              Unlock My AI Survival Guide
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

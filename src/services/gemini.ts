@@ -75,6 +75,43 @@ You must follow these phases in order:
 
 Always respond in the requested JSON format. Keep your 'message' warm, insightful, and encouraging.`;
 
+export async function generateAISurvivalGuide(skill: string) {
+  const survivalSchema = {
+    type: Type.OBJECT,
+    properties: {
+      skill: { type: Type.STRING, description: "The skill being analyzed." },
+      automationThreat: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Specific mundane/repetitive tasks in this job that AI will automate." },
+      humanAdvantage: { type: Type.ARRAY, items: { type: Type.STRING }, description: "High-level, strategic, or empathetic skills AI cannot replicate in this job." },
+      multiplierStrategy: { type: Type.STRING, description: "A strategic paragraph on how to merge human skills with AI to do the work of 10 people." },
+      toolStack: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            name: { type: Type.STRING },
+            description: { type: Type.STRING }
+          },
+          required: ["name", "description"]
+        },
+        description: "3-4 specific AI tools they need to learn immediately for this niche."
+      }
+    },
+    required: ["skill", "automationThreat", "humanAdvantage", "multiplierStrategy", "toolStack"]
+  };
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: `Generate an AI Survival Guide for the following skill: ${skill}. Focus on how to future-proof this career, what AI will automate, the human advantage, and the essential AI tool stack.`,
+    config: {
+      systemInstruction: "You are an expert AI strategist and career futurist. Your goal is to empower users by showing them exactly how to leverage AI in their specific field, rather than being replaced by it. Be specific, actionable, and encouraging. Do not give generic advice.",
+      responseMimeType: 'application/json',
+      responseSchema: survivalSchema,
+      temperature: 0.7,
+    }
+  });
+
+  return response.text;
+}
 export async function getNextUpskillrResponse(history: { role: string, parts: { text: string }[] }[], userMessage: string) {
   const contents = [...history, { role: 'user', parts: [{ text: userMessage }] }];
   
